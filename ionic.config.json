@@ -1,0 +1,7 @@
+{
+  "name": "quantified-habit-tracker",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
