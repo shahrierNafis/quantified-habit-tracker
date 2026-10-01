@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Install Bun and enable built-in caching
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # 2. Keep Node.js setup if your build step strictly requires it,
+      # but remove the invalid cache parameter.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 3. Bun uses 'install', it doesn't have a 'ci' command like npm
+      - run: bun install --frozen-lockfile
+
+      - run: bun run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
