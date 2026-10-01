@@ -1,15 +1,40 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { IonButtons, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonInput, IonAlert } from "@ionic/react";
 import { Minus, Plus, X } from "lucide-react";
 import { HabitType, useHabitStore } from "../storages/zustandStore";
 import { useEffect } from "react";
+import { Haptics, NotificationType } from "@capacitor/haptics";
+import { VolumeButtons } from "@capacitor-community/volume-buttons";
+
 function Habit(props: { habit: HabitType }) {
   const modal = useRef<HTMLIonModalElement>(null);
   const input = useRef<HTMLIonInputElement>(null);
   const [openSetSizeOfCycleAlert, setOpenSetSizeOfCycleAlert] = useState<string | null>(null);
+
+  const handleIncrement = useCallback(() => {
+    useHabitStore.getState().addToHabit(props.habit.id, 1, true);
+    Haptics.notification({ type: NotificationType.Success });
+  }, [props.habit.id]);
+
+  const handleDecrement = useCallback(() => {
+    useHabitStore.getState().addToHabit(props.habit.id, -1, true);
+    Haptics.notification({ type: NotificationType.Warning });
+  }, [props.habit.id]);
   useEffect(() => {
+    // Watch for volume button events
+    VolumeButtons.watchVolume(
+      {
+        disableSystemVolumeHandler: false, // Optional: set true on iOS to prevent default volume change
+        suppressVolumeIndicator: false, // Optional: set true on Android to hide system overlay
+      },
+      (callback) => {
+        if (callback.direction === "up") handleIncrement();
+        if (callback.direction === "down") handleDecrement();
+      },
+    ).catch((e) => console.warn("Volume button watch failed", e));
+
     return () => {};
-  }, []);
+  }, [handleDecrement, handleIncrement]);
 
   return (
     <>
@@ -140,12 +165,7 @@ function Habit(props: { habit: HabitType }) {
               </>
             ))}
           </div>
-          <IonButton
-            className="w-full ion-margin-top flex-1"
-            onClick={() => {
-              useHabitStore.getState().addToHabit(props.habit.id, 1, true);
-            }}
-          >
+          <IonButton className="w-full ion-margin-top flex-1" onClick={handleIncrement}>
             <Plus />
           </IonButton>
           {/* Move the grid styling to a wrapping div element */}
@@ -177,13 +197,7 @@ function Habit(props: { habit: HabitType }) {
                 ]}
               ></IonAlert>
             </IonButton>
-            <IonButton
-              color={"danger"}
-              className="w-full"
-              onClick={() => {
-                useHabitStore.getState().addToHabit(props.habit.id, -1, true);
-              }}
-            >
+            <IonButton color={"danger"} className="w-full" onClick={handleDecrement}>
               <Minus />
             </IonButton>
           </div>

@@ -5,10 +5,11 @@
       "name": "quantified-habit-tracker",
       "dependencies": {
         "@aws-sdk/client-s3": "^3.1144.0",
+        "@capacitor-community/volume-buttons": "^8.0.1",
         "@capacitor/app": "8.1.1",
         "@capacitor/browser": "^8.0.4",
         "@capacitor/core": "8.5.2",
-        "@capacitor/haptics": "8.0.2",
+        "@capacitor/haptics": "^8.0.2",
         "@capacitor/keyboard": "8.0.5",
         "@capacitor/status-bar": "8.0.3",
         "@ionic/react": "^9.0.0",
@@ -276,6 +277,8 @@
     "@babel/types": ["@babel/types@7.29.8", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-Vj1jF3cPfxg7OAfoI7QnVKLoILlm2JF9pnVHrX8qx7AHMiYWT+NDAA7jChlNgRS4WTLc/fD1lXLmPixluj+3Gg=="],
 
     "@canvas/image-data": ["@canvas/image-data@1.1.0", "", {}, "sha512-QdObRRjRbcXGmM1tmJ+MrHcaz1MftF2+W7YI+MsphnsCrmtyfS0d5qJbk0MeSbUeyM/jCb0hmnkXPsy026L7dA=="],
+
+    "@capacitor-community/volume-buttons": ["@capacitor-community/volume-buttons@8.0.1", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-ZPTKAGVwfjHCKq/YSPEpRCtzHmpcnl2zihsvvL+NI5ttykDJXNZpBcQCY5Jji5tNvjZvcJ4lIWfNhhA8kgTNCQ=="],
 
     "@capacitor/app": ["@capacitor/app@8.1.1", "", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-xM2ZTX5jK60tFtmjsmJv+Cdj1Qsb6NcavkqmdEnCPQBeya9oKhamZJxYOnQNj1ZvcJM7sWfG6BEtSLx42pisbA=="],
 
