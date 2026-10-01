@@ -1,15 +1,5 @@
 import React, { useRef, useState } from "react";
-import {
-  IonButtons,
-  IonButton,
-  IonModal,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonInput,
-  IonAlert,
-  IonItem,
-} from "@ionic/react";
+import { IonButtons, IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonInput, IonAlert } from "@ionic/react";
 import { Minus, Plus, X } from "lucide-react";
 import { HabitType, useHabitStore } from "../storages/zustandStore";
 import { useEffect } from "react";

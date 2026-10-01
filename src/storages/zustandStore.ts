@@ -1,30 +1,7 @@
 import { create } from "zustand";
-import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
-import { Storage } from "@ionic/storage";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { ionicStorage } from "./ionicStorage";
 
-// 1. Initialize Ionic Storage
-const store = new Storage();
-const initStorage = async () => {
-  await store.create();
-};
-initStorage();
-
-// 2. Create the custom StateStorage adapter
-const ionicStorage: StateStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    const value = await store.get(name);
-    return value ? JSON.stringify(value) : null;
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    // Zustand's persist passes a stringified JSON value
-    await store.set(name, JSON.parse(value));
-  },
-  removeItem: async (name: string): Promise<void> => {
-    await store.remove(name);
-  },
-};
-
-// 3. Create your Zustand store with the persist middleware
 export type HabitType = {
   name: string;
   id: string;
@@ -35,6 +12,14 @@ export type HabitType = {
 };
 interface HabitState {
   habits: HabitType[];
+  /** Tombstones: id -> ISO date the habit was deleted. Synced so deletions aren't undone by a pull. */
+  deletedIds: Record<string, string>;
+  /** Applies a remote backup: drops habits deleted elsewhere, adds habits that are new here. */
+  mergeRemote: (
+    remoteHabits: HabitType[],
+    remoteDeleted: Record<string, string>,
+  ) => { added: number; removed: number };
+  pruneDeleted: (maxAgeDays: number) => void;
   addHabit: (habit: Partial<HabitType>) => void;
   addToHabit: (id: string, number: number, addToToday?: boolean) => void;
   updateHabit: (id: string, habit: Partial<HabitType>) => void;
@@ -43,9 +28,39 @@ interface HabitState {
 
 export const useHabitStore = create<HabitState>()(
   persist(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (set, get) => ({
       habits: [],
+      deletedIds: {},
+      mergeRemote: (remoteHabits, remoteDeleted) => {
+        const { habits, deletedIds } = get();
+        const today = new Date().toISOString().split("T")[0];
+        const tombstones = { ...remoteDeleted, ...deletedIds };
+
+        // Habits deleted on another device
+        const kept = habits.filter((h) => !(h.id in remoteDeleted));
+        const keptIds = new Set(kept.map((h) => h.id));
+
+        // Habits that only exist remotely and haven't been deleted anywhere
+        const added = remoteHabits
+          .filter((h) => h?.id && h?.name && !keptIds.has(h.id) && !(h.id in tombstones))
+          .map((h) => ({
+            ...h,
+            // same day-rollover rule applied on load
+            todaysNumber: h.today === today ? h.todaysNumber : 0,
+            today,
+          }));
+
+        set({ habits: [...kept, ...added], deletedIds: tombstones });
+        return { added: added.length, removed: habits.length - kept.length };
+      },
+      pruneDeleted: (maxAgeDays) => {
+        const cutoff = Date.now() - maxAgeDays * 86_400_000;
+        set((state) => ({
+          deletedIds: Object.fromEntries(
+            Object.entries(state.deletedIds).filter(([, at]) => new Date(at).getTime() >= cutoff),
+          ),
+        }));
+      },
       addHabit: ({
         id = crypto.randomUUID(), // Date.now().toString()
         name,
@@ -87,6 +102,7 @@ export const useHabitStore = create<HabitState>()(
       removeHabit: (id) => {
         set((state) => ({
           habits: state.habits.filter((habit) => habit.id !== id),
+          deletedIds: { ...state.deletedIds, [id]: new Date().toISOString() },
         }));
       },
     }),
@@ -99,7 +115,6 @@ export const useHabitStore = create<HabitState>()(
 
           const today = new Date().toISOString().split("T")[0];
 
-          // ✅ Use the store setter, not the raw state object
           useHabitStore.setState({
             habits: state.habits.map((habit) => ({
               ...habit,
