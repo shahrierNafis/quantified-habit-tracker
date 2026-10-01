@@ -20,7 +20,7 @@ export default defineConfig({
         id: "/quantified-habit-tracker/",
         name: "Quantified Habit Tracker",
         short_name: "QHT",
-        description: "An installable, native-like app built with React and Ionic",
+        description: "Simplest way to track any of your quantifiable/repetitive daily habits.",
         theme_color: "#3880ff",
         background_color: "#ffffff",
         display: "standalone",
