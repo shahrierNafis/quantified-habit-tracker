@@ -15,10 +15,7 @@ interface HabitState {
   /** Tombstones: id -> ISO date the habit was deleted. Synced so deletions aren't undone by a pull. */
   deletedIds: Record<string, string>;
   /** Applies a remote backup: drops habits deleted elsewhere, adds habits that are new here. */
-  mergeRemote: (
-    remoteHabits: HabitType[],
-    remoteDeleted: Record<string, string>,
-  ) => { added: number; removed: number };
+  mergeRemote: (remoteHabits: HabitType[], remoteDeleted: Record<string, string>) => { added: number; removed: number };
   pruneDeleted: (maxAgeDays: number) => void;
   addHabit: (habit: Partial<HabitType>) => void;
   addToHabit: (id: string, number: number, addToToday?: boolean) => void;
@@ -33,7 +30,8 @@ export const useHabitStore = create<HabitState>()(
       deletedIds: {},
       mergeRemote: (remoteHabits, remoteDeleted) => {
         const { habits, deletedIds } = get();
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toLocaleDateString();
+
         const tombstones = { ...remoteDeleted, ...deletedIds };
 
         // Habits deleted on another device
@@ -65,7 +63,8 @@ export const useHabitStore = create<HabitState>()(
         id = crypto.randomUUID(), // Date.now().toString()
         name,
         todaysNumber = 0,
-        today = new Date().toISOString().split("T")[0],
+        today = new Date().toLocaleDateString(),
+
         total = 0,
         sizeOfCycle = 1000,
       }) => {
@@ -80,7 +79,8 @@ export const useHabitStore = create<HabitState>()(
       },
       addToHabit: (id, number, addToToday = true) => {
         set((state) => {
-          const today = new Date().toISOString().split("T")[0];
+          const today = new Date().toLocaleDateString();
+
           return {
             habits: state.habits.map((habit) =>
               habit.id === id
@@ -109,11 +109,27 @@ export const useHabitStore = create<HabitState>()(
     {
       name: "ionic-habit-storage",
       storage: createJSONStorage(() => ionicStorage),
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version === 0) {
+          // Migrate from version 0 to version 1
+          const migratedState = {
+            ...(persistedState as HabitState),
+            habits: (persistedState as HabitState).habits.map((habit) => ({
+              ...habit,
+              todaysNumber: habit.today === new Date().toISOString().split("T")[0] ? habit.todaysNumber : 0,
+              today: new Date().toLocaleDateString(),
+            })),
+          };
+          return migratedState;
+        }
+        return persistedState;
+      },
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error || !state) return;
 
-          const today = new Date().toISOString().split("T")[0];
+          const today = new Date().toLocaleDateString();
 
           useHabitStore.setState({
             habits: state.habits.map((habit) => ({
