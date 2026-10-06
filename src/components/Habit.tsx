@@ -35,6 +35,22 @@ function Habit(props: { habit: HabitType }) {
 
     return () => {};
   }, [handleDecrement, handleIncrement]);
+  const setNumberToAdd = useRef<HTMLIonAlertElement | null>(null);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const inputElement = setNumberToAdd.current?.querySelector("input");
+      if (event.key === "Enter" && setNumberToAdd.current && inputElement && document.activeElement === inputElement) {
+        useHabitStore.getState().addToHabit(props.habit.id, parseInt(inputElement.value) || 1, true);
+        inputElement.value = "";
+        setNumberToAdd.current.dismiss();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <>
@@ -173,6 +189,7 @@ function Habit(props: { habit: HabitType }) {
             <IonButton id={"set-number-to-add" + props.habit.id} className="w-full">
               <Plus />
               <IonAlert
+                ref={setNumberToAdd}
                 header="Set Number to Add"
                 trigger={"set-number-to-add" + props.habit.id}
                 buttons={[

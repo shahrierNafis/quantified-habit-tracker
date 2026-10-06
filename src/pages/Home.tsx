@@ -18,7 +18,7 @@ import { useHabitStore } from "../storages/zustandStore";
 import { useBackupStore } from "../storages/backupStore";
 import { hashHabits, isBackupDue, syncFromRemote, runBackup } from "../services/s3Backup";
 import { useShallow } from "zustand/shallow";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const Home: React.FC = () => {
   const habits = useHabitStore(useShallow((state) => state.habits));
@@ -63,7 +63,22 @@ const Home: React.FC = () => {
       : lastBackedUpHash === hashHabits(habits)
         ? cloudDoneOutline
         : cloudUploadOutline;
+  const addHabitAlert = useRef<HTMLIonAlertElement | null>(null);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const inputElement = addHabitAlert.current?.querySelector("input");
+      if (event.key === "Enter" && addHabitAlert.current && inputElement && document.activeElement === inputElement) {
+        useHabitStore.getState().addHabit({ name: inputElement.value, todaysNumber: 0 });
+        inputElement.value = "";
+        addHabitAlert.current.dismiss();
+      }
+    };
 
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
   return (
     <IonPage>
       <IonHeader>
@@ -90,6 +105,7 @@ const Home: React.FC = () => {
           Add Habit
         </IonButton>
         <IonAlert
+          ref={addHabitAlert}
           trigger="present-alert"
           header="Add Habit"
           buttons={[
@@ -97,15 +113,17 @@ const Home: React.FC = () => {
             {
               text: "ADD",
               handler: (alertData) => {
-                useHabitStore.getState().addHabit({ name: alertData.name, todaysNumber: 0 });
+                {
+                  useHabitStore.getState().addHabit({ name: alertData.name, todaysNumber: 0 });
+                }
               },
             },
           ]}
           inputs={[
             {
               name: "name",
-
               placeholder: "Name",
+              type: "text",
             },
           ]}
         ></IonAlert>
