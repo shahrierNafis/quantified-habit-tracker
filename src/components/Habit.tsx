@@ -54,7 +54,7 @@ function Habit(props: { habit: HabitType }) {
 
   return (
     <>
-      <IonButton id={"open-modal" + props.habit.id} size="large" className="ion-margin">
+      <IonButton color="light" id={"open-modal" + props.habit.id} size="large" className="ion-margin text-white">
         {props.habit.name}
       </IonButton>
       <IonModal ref={modal} trigger={"open-modal" + props.habit.id}>
@@ -77,7 +77,13 @@ function Habit(props: { habit: HabitType }) {
                 }}
               />
             </IonTitle>
-            <IonButton id={"delete-habit" + props.habit.id} className="ion-margin-end" slot="end" color="danger">
+            <IonButton
+              id={"delete-habit" + props.habit.id}
+              className="ion-margin-end"
+              slot="end"
+              fill="outline"
+              color="danger"
+            >
               DELETE
             </IonButton>
             <IonAlert
@@ -103,7 +109,7 @@ function Habit(props: { habit: HabitType }) {
               { capitalized: "TOTAL", camelCase: "total", kebabCase: "total" },
             ].map((item) => (
               <>
-                <ApplyAttributes attributes={{ fill: "clear" }}>
+                <ApplyAttributes attributes={{ fill: "clear", className: "white-text" }}>
                   <IonButton className="" disabled>
                     {item.capitalized}:
                   </IonButton>
@@ -181,12 +187,12 @@ function Habit(props: { habit: HabitType }) {
               </>
             ))}
           </div>
-          <IonButton className="w-full ion-margin-top flex-1" onClick={handleIncrement}>
+          <IonButton color="light" className="w-full ion-margin-top flex-1" onClick={handleIncrement}>
             <Plus />
           </IonButton>
           {/* Move the grid styling to a wrapping div element */}
           <div className="grid grid-cols-2 gap-2">
-            <IonButton id={"set-number-to-add" + props.habit.id} className="w-full">
+            <IonButton color="light" id={"set-number-to-add" + props.habit.id} className="w-full">
               <Plus />
               <IonAlert
                 ref={setNumberToAdd}
@@ -214,7 +220,7 @@ function Habit(props: { habit: HabitType }) {
                 ]}
               ></IonAlert>
             </IonButton>
-            <IonButton color={"danger"} className="w-full" onClick={handleDecrement}>
+            <IonButton color="danger" fill="outline" className="w-full" onClick={handleDecrement}>
               <Minus />
             </IonButton>
           </div>

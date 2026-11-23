@@ -100,6 +100,8 @@ const Home: React.FC = () => {
         <IonButton
           id="present-alert"
           expand="block"
+          color="light"
+          className="ion-margin text-white"
           // onClick={() => }
         >
           Add Habit
